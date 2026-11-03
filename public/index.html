@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control de Préstamos de Laboratorio</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============ ACCESO ============ -->
+  <main id="vista-auth" class="auth" hidden>
+    <section class="auth-card">
+      <div class="auth-marca">
+        <div class="logo" aria-hidden="true">LAB</div>
+        <h1>Control de Préstamos</h1>
+        <p>Equipos de laboratorio</p>
+      </div>
+
+      <form id="form-login" class="formulario" novalidate>
+        <p class="aviso-acceso">Acceso libre: escriba <strong>cualquier correo y cualquier contraseña</strong> (o déjelos vacíos) y presione Entrar.</p>
+        <label>Correo
+          <input type="text" name="correo" autocomplete="username" placeholder="cualquier@correo.com">
+        </label>
+        <label>Contraseña
+          <input type="password" name="contrasena" autocomplete="current-password" placeholder="cualquiera">
+        </label>
+        <p class="error-form" data-error></p>
+        <button type="submit" class="btn btn-primario btn-bloque">Entrar</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- ============ APLICACIÓN ============ -->
+  <div id="vista-app" hidden>
+    <header class="barra">
+      <div class="barra-marca">
+        <div class="logo logo-chico" aria-hidden="true">LAB</div>
+        <strong>Control de Préstamos</strong>
+      </div>
+      <nav class="barra-nav" aria-label="Secciones">
+        <button type="button" class="nav-btn activa" data-seccion="equipos">Equipos</button>
+        <button type="button" class="nav-btn" data-seccion="prestamos">Préstamos</button>
+      </nav>
+      <div class="barra-usuario">
+        <span id="usuario-nombre"></span>
+        <button type="button" id="btn-salir" class="btn btn-secundario btn-chico">Salir</button>
+      </div>
+    </header>
+
+    <main class="contenedor">
+      <section class="resumen" aria-label="Resumen">
+        <article class="tarjeta-dato"><span class="dato-num" id="res-equipos">–</span><span class="dato-txt">Equipos registrados</span></article>
+        <article class="tarjeta-dato"><span class="dato-num" id="res-disponibles">–</span><span class="dato-txt">Disponibles</span></article>
+        <article class="tarjeta-dato"><span class="dato-num" id="res-prestados">–</span><span class="dato-txt">Sin devolver</span></article>
+        <article class="tarjeta-dato alerta"><span class="dato-num" id="res-vencidos">–</span><span class="dato-txt">Vencidos</span></article>
+      </section>
+
+      <!-- Equipos -->
+      <section id="sec-equipos" class="panel">
+        <div class="panel-cab">
+          <h2>Equipos</h2>
+          <button type="button" id="btn-nuevo-equipo" class="btn btn-primario">+ Nuevo equipo</button>
+        </div>
+        <form id="filtros-equipos" class="filtros">
+          <input type="search" name="q" placeholder="Buscar por código o nombre">
+          <select name="condicion_uso" aria-label="Condición">
+            <option value="">Todas las condiciones</option>
+            <option value="bueno">Bueno</option>
+            <option value="regular">Regular</option>
+            <option value="en_mantenimiento">En mantenimiento</option>
+            <option value="fuera_de_servicio">Fuera de servicio</option>
+          </select>
+          <select name="disponible" aria-label="Disponibilidad">
+            <option value="">Disponibles y prestados</option>
+            <option value="true">Solo disponibles</option>
+            <option value="false">Solo prestados</option>
+          </select>
+          <button type="submit" class="btn btn-secundario">Filtrar</button>
+        </form>
+        <div class="tabla-caja">
+          <table>
+            <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Condición</th><th>Estado</th><th class="col-acc">Acciones</th></tr></thead>
+            <tbody id="tbody-equipos"></tbody>
+          </table>
+        </div>
+        <div class="paginacion" id="pag-equipos"></div>
+      </section>
+
+      <!-- Préstamos -->
+      <section id="sec-prestamos" class="panel" hidden>
+        <div class="panel-cab">
+          <h2>Préstamos</h2>
+        </div>
+        <form id="filtros-prestamos" class="filtros">
+          <input type="search" name="prestatario" placeholder="Buscar por prestatario">
+          <select name="estado" aria-label="Estado">
+            <option value="">Todos</option>
+            <option value="sin_devolver">Sin devolver</option>
+            <option value="vencidos">Vencidos</option>
+            <option value="devueltos">Devueltos</option>
+          </select>
+          <button type="submit" class="btn btn-secundario">Filtrar</button>
+        </form>
+        <div class="tabla-caja">
+          <table>
+            <thead><tr><th>#</th><th>Equipo</th><th>Prestatario</th><th>Préstamo</th><th>Prevista</th><th>Devolución</th><th>Estado</th><th class="col-acc">Acciones</th></tr></thead>
+            <tbody id="tbody-prestamos"></tbody>
+          </table>
+        </div>
+        <div class="paginacion" id="pag-prestamos"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ DIÁLOGOS ============ -->
+  <dialog id="dlg-equipo">
+    <form id="form-equipo" class="formulario" method="dialog" novalidate>
+      <h3 id="dlg-equipo-titulo">Nuevo equipo</h3>
+      <label>Código
+        <input type="text" name="codigo" required maxlength="30" placeholder="LAB-001">
+      </label>
+      <label>Nombre
+        <input type="text" name="nombre" required maxlength="120">
+      </label>
+      <label>Categoría
+        <input type="text" name="categoria" required maxlength="60" list="lista-categorias">
+        <datalist id="lista-categorias"></datalist>
+      </label>
+      <label>Condición de uso
+        <select name="condicion_uso">
+          <option value="bueno">Bueno</option>
+          <option value="regular">Regular</option>
+          <option value="en_mantenimiento">En mantenimiento</option>
+          <option value="fuera_de_servicio">Fuera de servicio</option>
+        </select>
+      </label>
+      <p class="error-form" data-error></p>
+      <div class="dlg-botones">
+        <button type="button" class="btn btn-secundario" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-primario">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-prestamo">
+    <form id="form-prestamo" class="formulario" method="dialog" novalidate>
+      <h3>Registrar préstamo</h3>
+      <p class="dlg-sub" id="prestamo-equipo"></p>
+      <label>Prestatario
+        <input type="text" name="prestatario" required minlength="2" maxlength="120" placeholder="Nombre completo">
+      </label>
+      <div class="fila-2">
+        <label>Fecha de préstamo
+          <input type="date" name="fecha_prestamo" required>
+        </label>
+        <label>Fecha prevista de devolución
+          <input type="date" name="fecha_prevista" required>
+        </label>
+      </div>
+      <p class="error-form" data-error></p>
+      <div class="dlg-botones">
+        <button type="button" class="btn btn-secundario" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-primario">Registrar préstamo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-devolucion">
+    <form id="form-devolucion" class="formulario" method="dialog" novalidate>
+      <h3>Registrar devolución</h3>
+      <p class="dlg-sub" id="devolucion-info"></p>
+      <label>Fecha de devolución
+        <input type="date" name="fecha_devolucion" required>
+      </label>
+      <label>Condición del equipo al devolverlo
+        <select name="condicion_uso">
+          <option value="">Sin cambios</option>
+          <option value="bueno">Bueno</option>
+          <option value="regular">Regular</option>
+          <option value="en_mantenimiento">En mantenimiento</option>
+          <option value="fuera_de_servicio">Fuera de servicio</option>
+        </select>
+      </label>
+      <p class="error-form" data-error></p>
+      <div class="dlg-botones">
+        <button type="button" class="btn btn-secundario" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-primario">Confirmar devolución</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-historial" class="ancho">
+    <div class="formulario">
+      <h3 id="historial-titulo">Historial</h3>
+      <div class="tabla-caja">
+        <table>
+          <thead><tr><th>#</th><th>Prestatario</th><th>Préstamo</th><th>Prevista</th><th>Devolución</th><th>Estado</th></tr></thead>
+          <tbody id="tbody-historial"></tbody>
+        </table>
+      </div>
+      <div class="dlg-botones">
+        <button type="button" class="btn btn-secundario" data-cerrar>Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-confirmar">
+    <form class="formulario" method="dialog">
+      <h3 id="confirmar-titulo">Confirmar</h3>
+      <p id="confirmar-texto"></p>
+      <div class="dlg-botones">
+        <button type="button" class="btn btn-secundario" data-cerrar>Cancelar</button>
+        <button type="submit" class="btn btn-peligro" id="confirmar-ok">Eliminar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

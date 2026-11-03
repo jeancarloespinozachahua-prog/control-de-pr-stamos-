@@ -1,0 +1,39 @@
+// Escenario de pruebas manuales/documentadas. Lo usan DOS scripts:
+//  - generar-postman.js    → colección importable en Postman
+//  - generar-evidencias.js → ejecuta los pasos de verdad y guarda solicitud + respuesta
+// Variables: {{hoy}}, {{ayer}}, {{en5dias}}, {{sufijo}} y las capturadas con "guardar".
+module.exports = [
+  { carpeta: '0. Estado', nombre: 'Salud del servicio', metodo: 'GET', ruta: '/api/health', auth: false, esperado: 200, resultado: 'El servicio responde operativo.' },
+
+  { carpeta: '1. Seguridad (JWT)', nombre: 'Caso 1a · Equipos sin token', caso: 'Acceso sin token', metodo: 'GET', ruta: '/api/equipos', auth: false, esperado: 401, resultado: 'Operación rechazada con 401.' },
+  { carpeta: '1. Seguridad (JWT)', nombre: 'Caso 1b · Equipos con token inválido', caso: 'Acceso con token inválido', metodo: 'GET', ruta: '/api/equipos', token: 'esto.no.es.un.jwt', esperado: 401, resultado: 'Operación rechazada con 401.' },
+
+  { carpeta: '2. Usuarios', nombre: 'Registrar usuario', metodo: 'POST', ruta: '/api/auth/registro', auth: false, cuerpo: { nombre: 'Alumno Demo', correo: 'alumno.{{sufijo}}@demo.test', contrasena: 'Clave12345' }, esperado: 201, resultado: 'Usuario creado; la respuesta no incluye contraseña ni hash.' },
+  { carpeta: '2. Usuarios', nombre: 'Caso 2a · Registro con correo repetido', caso: 'Registro de correo repetido', metodo: 'POST', ruta: '/api/auth/registro', auth: false, cuerpo: { nombre: 'Alumno Demo', correo: 'alumno.{{sufijo}}@demo.test', contrasena: 'Clave12345' }, esperado: 409, resultado: 'Rechazo con mensaje de conflicto.' },
+  { carpeta: '2. Usuarios', nombre: 'Registro con datos inválidos', metodo: 'POST', ruta: '/api/auth/registro', auth: false, cuerpo: { nombre: 'A', correo: 'no-es-correo', contrasena: '123' }, esperado: 400, resultado: 'Rechazo con el detalle de cada campo inválido.' },
+  { carpeta: '2. Usuarios', nombre: 'Login correcto (guarda el token)', metodo: 'POST', ruta: '/api/auth/login', auth: false, cuerpo: { correo: 'alumno.{{sufijo}}@demo.test', contrasena: 'Clave12345' }, esperado: 200, guardar: { token: 'data.token' }, resultado: 'Se entrega un JWT; queda guardado para los pasos siguientes.' },
+  { carpeta: '2. Usuarios', nombre: 'Login con contraseña incorrecta', metodo: 'POST', ruta: '/api/auth/login', auth: false, cuerpo: { correo: 'alumno.{{sufijo}}@demo.test', contrasena: 'Equivocada1' }, esperado: 401, resultado: 'Credenciales rechazadas.' },
+
+  { carpeta: '3. Equipos', nombre: 'Crear equipo', metodo: 'POST', ruta: '/api/equipos', cuerpo: { codigo: 'EQ-{{sufijo}}', nombre: 'Osciloscopio digital', categoria: 'Electrónica', condicion_uso: 'bueno' }, esperado: 201, guardar: { equipoId: 'data.id' }, resultado: 'Equipo creado y disponible.' },
+  { carpeta: '3. Equipos', nombre: 'Caso 2b · Crear equipo con código repetido', caso: 'Código de equipo repetido', metodo: 'POST', ruta: '/api/equipos', cuerpo: { codigo: 'EQ-{{sufijo}}', nombre: 'Duplicado', categoria: 'Electrónica' }, esperado: 409, resultado: 'Rechazo con mensaje de conflicto.' },
+  { carpeta: '3. Equipos', nombre: 'Caso 6a · Equipo con datos incompletos', caso: 'Datos incompletos', metodo: 'POST', ruta: '/api/equipos', cuerpo: { codigo: 'EQ-X' }, esperado: 400, resultado: 'Rechazo con explicación de los campos faltantes.' },
+  { carpeta: '3. Equipos', nombre: 'Listar equipos (paginado y filtrable)', metodo: 'GET', ruta: '/api/equipos?disponible=true&limit=5', esperado: 200, resultado: 'Lista de equipos con el campo calculado "disponible".' },
+  { carpeta: '3. Equipos', nombre: 'Consultar equipo por id', metodo: 'GET', ruta: '/api/equipos/{{equipoId}}', esperado: 200, resultado: 'Detalle del equipo, disponible y sin préstamo activo.' },
+  { carpeta: '3. Equipos', nombre: 'Actualizar equipo', metodo: 'PUT', ruta: '/api/equipos/{{equipoId}}', cuerpo: { nombre: 'Osciloscopio digital 200 MHz' }, esperado: 200, resultado: 'Solo cambia el campo enviado.' },
+  { carpeta: '3. Equipos', nombre: 'Caso 7a · Consultar id inexistente', caso: 'Consulta de un id inexistente', metodo: 'GET', ruta: '/api/equipos/999999', esperado: 404, resultado: 'Respuesta 404.' },
+  { carpeta: '3. Equipos', nombre: 'Caso 7b · Modificar id inexistente', caso: 'Modificación de un id inexistente', metodo: 'PUT', ruta: '/api/equipos/999999', cuerpo: { nombre: 'No existe' }, esperado: 404, resultado: 'Respuesta 404.' },
+
+  { carpeta: '4. Préstamos', nombre: 'Caso 3 · Registrar préstamo válido', caso: 'Creación de un préstamo válido', metodo: 'POST', ruta: '/api/prestamos', cuerpo: { equipo_id: '{{equipoId}}', prestatario: 'Ana Torres Quispe', fecha_prestamo: '{{hoy}}', fecha_prevista: '{{en5dias}}' }, esperado: 201, guardar: { prestamoId: 'data.id' }, resultado: 'Registro persistente; el responsable es el usuario autenticado.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 3 · El equipo ya no está disponible', caso: 'Equipo no disponible tras el préstamo', metodo: 'GET', ruta: '/api/equipos/{{equipoId}}', esperado: 200, resultado: '"disponible": false y se muestra el préstamo activo.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 4 · Segundo préstamo activo del mismo equipo', caso: 'Segundo préstamo activo', metodo: 'POST', ruta: '/api/prestamos', cuerpo: { equipo_id: '{{equipoId}}', prestatario: 'Luis Ramos Paredes', fecha_prevista: '{{en5dias}}' }, esperado: 409, resultado: 'Rechazo sin duplicar el préstamo activo.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 6b · Fechas incoherentes', caso: 'Fechas incoherentes', metodo: 'POST', ruta: '/api/prestamos', cuerpo: { equipo_id: '{{equipoId}}', prestatario: 'Luis Ramos Paredes', fecha_prestamo: '{{en5dias}}', fecha_prevista: '{{hoy}}' }, esperado: 400, resultado: 'Rechazo indicando el campo fecha_prevista.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 6c · Préstamo con datos incompletos', caso: 'Datos incompletos', metodo: 'POST', ruta: '/api/prestamos', cuerpo: { equipo_id: '{{equipoId}}' }, esperado: 400, resultado: 'Rechazo indicando prestatario y fecha_prevista.' },
+  { carpeta: '4. Préstamos', nombre: 'Eliminar equipo con historial (prestado)', metodo: 'DELETE', ruta: '/api/equipos/{{equipoId}}', esperado: 409, resultado: 'No se permite eliminar equipos con historial de préstamos.' },
+  { carpeta: '4. Préstamos', nombre: 'Consultar préstamos activos', metodo: 'GET', ruta: '/api/prestamos?activos=true', esperado: 200, resultado: 'Solo préstamos sin fecha de devolución.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 5a · Registrar devolución', caso: 'Devolución', metodo: 'PUT', ruta: '/api/prestamos/{{prestamoId}}/devolucion', cuerpo: {}, esperado: 200, resultado: 'Se registra la fecha de devolución; estado "devuelto".' },
+  { carpeta: '4. Préstamos', nombre: 'Devolver un préstamo ya devuelto', metodo: 'PUT', ruta: '/api/prestamos/{{prestamoId}}/devolucion', cuerpo: {}, esperado: 409, resultado: 'Rechazo: el préstamo ya fue devuelto.' },
+  { carpeta: '4. Préstamos', nombre: 'Devolución de un préstamo inexistente', metodo: 'PUT', ruta: '/api/prestamos/999999/devolucion', cuerpo: {}, esperado: 404, resultado: 'Respuesta 404.' },
+  { carpeta: '4. Préstamos', nombre: 'Caso 5b · Nuevo préstamo tras la devolución', caso: 'Nuevo préstamo después de la devolución', metodo: 'POST', ruta: '/api/prestamos', cuerpo: { equipo_id: '{{equipoId}}', prestatario: 'Luis Ramos Paredes', fecha_prevista: '{{en5dias}}' }, esperado: 201, resultado: 'El equipo fue habilitado y admite un nuevo préstamo.' },
+  { carpeta: '4. Préstamos', nombre: 'Historial del equipo', metodo: 'GET', ruta: '/api/equipos/{{equipoId}}/historial', esperado: 200, resultado: 'Los dos préstamos del equipo, del más reciente al más antiguo.' },
+  { carpeta: '4. Préstamos', nombre: 'Préstamos filtrados por equipo', metodo: 'GET', ruta: '/api/prestamos?equipo_id={{equipoId}}', esperado: 200, resultado: 'Activos y devueltos del equipo indicado.' },
+];

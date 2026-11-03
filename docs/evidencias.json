@@ -1,0 +1,982 @@
+{
+  "generado": "2026-11-02T23:33:04.954Z",
+  "persistencia": {
+    "prestamosEnMySQL": 2,
+    "coincide": true
+  },
+  "registros": [
+    {
+      "n": 1,
+      "carpeta": "0. Estado",
+      "nombre": "Salud del servicio",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/health",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "El servicio responde operativo.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "estado": "operativo"
+        }
+      }
+    },
+    {
+      "n": 2,
+      "carpeta": "1. Seguridad (JWT)",
+      "nombre": "Caso 1a · Equipos sin token",
+      "caso": "Acceso sin token",
+      "metodo": "GET",
+      "ruta": "/api/equipos",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "esperado": 401,
+      "obtenido": 401,
+      "cumple": true,
+      "resultado": "Operación rechazada con 401.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "NO_AUTENTICADO",
+          "mensaje": "Falta el token. Envíe el encabezado Authorization: Bearer <token>"
+        }
+      }
+    },
+    {
+      "n": 3,
+      "carpeta": "1. Seguridad (JWT)",
+      "nombre": "Caso 1b · Equipos con token inválido",
+      "caso": "Acceso con token inválido",
+      "metodo": "GET",
+      "ruta": "/api/equipos",
+      "requiereToken": true,
+      "tokenInvalido": true,
+      "esperado": 401,
+      "obtenido": 401,
+      "cumple": true,
+      "resultado": "Operación rechazada con 401.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "TOKEN_INVALIDO",
+          "mensaje": "El token es inválido"
+        }
+      }
+    },
+    {
+      "n": 4,
+      "carpeta": "2. Usuarios",
+      "nombre": "Registrar usuario",
+      "caso": null,
+      "metodo": "POST",
+      "ruta": "/api/auth/registro",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "nombre": "Alumno Demo",
+        "correo": "alumno.384636@demo.test",
+        "contrasena": "Clave12345"
+      },
+      "esperado": 201,
+      "obtenido": 201,
+      "cumple": true,
+      "resultado": "Usuario creado; la respuesta no incluye contraseña ni hash.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "id": 1,
+          "nombre": "Alumno Demo",
+          "correo": "alumno.384636@demo.test",
+          "updatedAt": "2026-11-02T23:33:04.728Z",
+          "createdAt": "2026-11-02T23:33:04.728Z"
+        }
+      }
+    },
+    {
+      "n": 5,
+      "carpeta": "2. Usuarios",
+      "nombre": "Caso 2a · Registro con correo repetido",
+      "caso": "Registro de correo repetido",
+      "metodo": "POST",
+      "ruta": "/api/auth/registro",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "nombre": "Alumno Demo",
+        "correo": "alumno.384636@demo.test",
+        "contrasena": "Clave12345"
+      },
+      "esperado": 409,
+      "obtenido": 409,
+      "cumple": true,
+      "resultado": "Rechazo con mensaje de conflicto.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "CORREO_DUPLICADO",
+          "mensaje": "Ya existe un usuario registrado con ese correo"
+        }
+      }
+    },
+    {
+      "n": 6,
+      "carpeta": "2. Usuarios",
+      "nombre": "Registro con datos inválidos",
+      "caso": null,
+      "metodo": "POST",
+      "ruta": "/api/auth/registro",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "nombre": "A",
+        "correo": "no-es-correo",
+        "contrasena": "123"
+      },
+      "esperado": 400,
+      "obtenido": 400,
+      "cumple": true,
+      "resultado": "Rechazo con el detalle de cada campo inválido.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "DATOS_INVALIDOS",
+          "mensaje": "Hay 4 datos inválidos o incompletos",
+          "detalles": [
+            {
+              "campo": "nombre",
+              "mensaje": "El campo 'nombre' debe tener al menos 2 caracteres"
+            },
+            {
+              "campo": "correo",
+              "mensaje": "El campo 'correo' no tiene un formato válido"
+            },
+            {
+              "campo": "contrasena",
+              "mensaje": "El campo 'contrasena' debe tener al menos 8 caracteres"
+            },
+            {
+              "campo": "contrasena",
+              "mensaje": "El campo 'contrasena' debe contener letras y números"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "n": 7,
+      "carpeta": "2. Usuarios",
+      "nombre": "Login correcto (guarda el token)",
+      "caso": null,
+      "metodo": "POST",
+      "ruta": "/api/auth/login",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "correo": "alumno.384636@demo.test",
+        "contrasena": "Clave12345"
+      },
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Se entrega un JWT; queda guardado para los pasos siguientes.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiY29ycmVvIjoiYWx1bW5vLjM4NDYzNkBkZW1vLnRlc3QiLCJpYXQiOjE3OTM2NjIzODQsImV4cCI6MTc5MzY2OTU4NH0.6H5YGLgEl5Scg3IcrBm-maVEZC4qxr_ow2IM5c3XglE",
+          "tipo": "Bearer",
+          "expira_en": "2h",
+          "usuario": {
+            "id": 1,
+            "nombre": "Alumno Demo",
+            "correo": "alumno.384636@demo.test",
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z"
+          }
+        }
+      }
+    },
+    {
+      "n": 8,
+      "carpeta": "2. Usuarios",
+      "nombre": "Login con contraseña incorrecta",
+      "caso": null,
+      "metodo": "POST",
+      "ruta": "/api/auth/login",
+      "requiereToken": false,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "correo": "alumno.384636@demo.test",
+        "contrasena": "Equivocada1"
+      },
+      "esperado": 401,
+      "obtenido": 401,
+      "cumple": true,
+      "resultado": "Credenciales rechazadas.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "CREDENCIALES_INVALIDAS",
+          "mensaje": "Correo o contraseña incorrectos"
+        }
+      }
+    },
+    {
+      "n": 9,
+      "carpeta": "3. Equipos",
+      "nombre": "Crear equipo",
+      "caso": null,
+      "metodo": "POST",
+      "ruta": "/api/equipos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "codigo": "EQ-384636",
+        "nombre": "Osciloscopio digital",
+        "categoria": "Electrónica",
+        "condicion_uso": "bueno"
+      },
+      "esperado": 201,
+      "obtenido": 201,
+      "cumple": true,
+      "resultado": "Equipo creado y disponible.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "id": 1,
+          "codigo": "EQ-384636",
+          "nombre": "Osciloscopio digital",
+          "categoria": "Electrónica",
+          "condicion_uso": "bueno",
+          "updatedAt": "2026-11-02T23:33:04.765Z",
+          "createdAt": "2026-11-02T23:33:04.765Z",
+          "disponible": true
+        }
+      }
+    },
+    {
+      "n": 10,
+      "carpeta": "3. Equipos",
+      "nombre": "Caso 2b · Crear equipo con código repetido",
+      "caso": "Código de equipo repetido",
+      "metodo": "POST",
+      "ruta": "/api/equipos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "codigo": "EQ-384636",
+        "nombre": "Duplicado",
+        "categoria": "Electrónica"
+      },
+      "esperado": 409,
+      "obtenido": 409,
+      "cumple": true,
+      "resultado": "Rechazo con mensaje de conflicto.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "CODIGO_DUPLICADO",
+          "mensaje": "Ya existe un equipo con el código EQ-384636"
+        }
+      }
+    },
+    {
+      "n": 11,
+      "carpeta": "3. Equipos",
+      "nombre": "Caso 6a · Equipo con datos incompletos",
+      "caso": "Datos incompletos",
+      "metodo": "POST",
+      "ruta": "/api/equipos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "codigo": "EQ-X"
+      },
+      "esperado": 400,
+      "obtenido": 400,
+      "cumple": true,
+      "resultado": "Rechazo con explicación de los campos faltantes.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "DATOS_INVALIDOS",
+          "mensaje": "Hay 2 datos inválidos o incompletos",
+          "detalles": [
+            {
+              "campo": "nombre",
+              "mensaje": "El campo 'nombre' es obligatorio"
+            },
+            {
+              "campo": "categoria",
+              "mensaje": "El campo 'categoria' es obligatorio"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "n": 12,
+      "carpeta": "3. Equipos",
+      "nombre": "Listar equipos (paginado y filtrable)",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/equipos?disponible=true&limit=5",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Lista de equipos con el campo calculado \"disponible\".",
+      "respuesta": {
+        "ok": true,
+        "data": [
+          {
+            "id": 1,
+            "codigo": "EQ-384636",
+            "nombre": "Osciloscopio digital",
+            "categoria": "Electrónica",
+            "condicion_uso": "bueno",
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z",
+            "disponible": true
+          }
+        ],
+        "meta": {
+          "total": 1,
+          "page": 1,
+          "limit": 5,
+          "paginas": 1
+        }
+      }
+    },
+    {
+      "n": 13,
+      "carpeta": "3. Equipos",
+      "nombre": "Consultar equipo por id",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/equipos/1",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Detalle del equipo, disponible y sin préstamo activo.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "id": 1,
+          "codigo": "EQ-384636",
+          "nombre": "Osciloscopio digital",
+          "categoria": "Electrónica",
+          "condicion_uso": "bueno",
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.000Z",
+          "disponible": true,
+          "prestamo_activo": null
+        }
+      }
+    },
+    {
+      "n": 14,
+      "carpeta": "3. Equipos",
+      "nombre": "Actualizar equipo",
+      "caso": null,
+      "metodo": "PUT",
+      "ruta": "/api/equipos/1",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "nombre": "Osciloscopio digital 200 MHz"
+      },
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Solo cambia el campo enviado.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "id": 1,
+          "codigo": "EQ-384636",
+          "nombre": "Osciloscopio digital 200 MHz",
+          "categoria": "Electrónica",
+          "condicion_uso": "bueno",
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.845Z",
+          "disponible": true
+        }
+      }
+    },
+    {
+      "n": 15,
+      "carpeta": "3. Equipos",
+      "nombre": "Caso 7a · Consultar id inexistente",
+      "caso": "Consulta de un id inexistente",
+      "metodo": "GET",
+      "ruta": "/api/equipos/999999",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 404,
+      "obtenido": 404,
+      "cumple": true,
+      "resultado": "Respuesta 404.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "EQUIPO_NO_ENCONTRADO",
+          "mensaje": "No existe un equipo con id 999999"
+        }
+      }
+    },
+    {
+      "n": 16,
+      "carpeta": "3. Equipos",
+      "nombre": "Caso 7b · Modificar id inexistente",
+      "caso": "Modificación de un id inexistente",
+      "metodo": "PUT",
+      "ruta": "/api/equipos/999999",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "nombre": "No existe"
+      },
+      "esperado": 404,
+      "obtenido": 404,
+      "cumple": true,
+      "resultado": "Respuesta 404.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "EQUIPO_NO_ENCONTRADO",
+          "mensaje": "No existe un equipo con id 999999"
+        }
+      }
+    },
+    {
+      "n": 17,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 3 · Registrar préstamo válido",
+      "caso": "Creación de un préstamo válido",
+      "metodo": "POST",
+      "ruta": "/api/prestamos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "equipo_id": 1,
+        "prestatario": "Ana Torres Quispe",
+        "fecha_prestamo": "2026-11-02",
+        "fecha_prevista": "2026-11-07"
+      },
+      "esperado": 201,
+      "obtenido": 201,
+      "cumple": true,
+      "resultado": "Registro persistente; el responsable es el usuario autenticado.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "estado": "activo",
+          "id": 1,
+          "equipo_id": 1,
+          "usuario_id": 1,
+          "prestatario": "Ana Torres Quispe",
+          "fecha_prestamo": "2026-11-02",
+          "fecha_prevista": "2026-11-07",
+          "fecha_devolucion": null,
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.000Z",
+          "equipo": {
+            "id": 1,
+            "codigo": "EQ-384636",
+            "nombre": "Osciloscopio digital 200 MHz"
+          },
+          "registrado_por": {
+            "id": 1,
+            "nombre": "Alumno Demo"
+          }
+        }
+      }
+    },
+    {
+      "n": 18,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 3 · El equipo ya no está disponible",
+      "caso": "Equipo no disponible tras el préstamo",
+      "metodo": "GET",
+      "ruta": "/api/equipos/1",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "\"disponible\": false y se muestra el préstamo activo.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "id": 1,
+          "codigo": "EQ-384636",
+          "nombre": "Osciloscopio digital 200 MHz",
+          "categoria": "Electrónica",
+          "condicion_uso": "bueno",
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.000Z",
+          "disponible": false,
+          "prestamo_activo": {
+            "estado": "activo",
+            "id": 1,
+            "equipo_id": 1,
+            "usuario_id": 1,
+            "prestatario": "Ana Torres Quispe",
+            "fecha_prestamo": "2026-11-02",
+            "fecha_prevista": "2026-11-07",
+            "fecha_devolucion": null,
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z",
+            "equipo": {
+              "id": 1,
+              "codigo": "EQ-384636",
+              "nombre": "Osciloscopio digital 200 MHz"
+            },
+            "registrado_por": {
+              "id": 1,
+              "nombre": "Alumno Demo"
+            }
+          }
+        }
+      }
+    },
+    {
+      "n": 19,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 4 · Segundo préstamo activo del mismo equipo",
+      "caso": "Segundo préstamo activo",
+      "metodo": "POST",
+      "ruta": "/api/prestamos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "equipo_id": 1,
+        "prestatario": "Luis Ramos Paredes",
+        "fecha_prevista": "2026-11-07"
+      },
+      "esperado": 409,
+      "obtenido": 409,
+      "cumple": true,
+      "resultado": "Rechazo sin duplicar el préstamo activo.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "EQUIPO_NO_DISPONIBLE",
+          "mensaje": "El equipo ya tiene un préstamo activo. Registre su devolución antes de prestarlo nuevamente"
+        }
+      }
+    },
+    {
+      "n": 20,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 6b · Fechas incoherentes",
+      "caso": "Fechas incoherentes",
+      "metodo": "POST",
+      "ruta": "/api/prestamos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "equipo_id": 1,
+        "prestatario": "Luis Ramos Paredes",
+        "fecha_prestamo": "2026-11-07",
+        "fecha_prevista": "2026-11-02"
+      },
+      "esperado": 400,
+      "obtenido": 400,
+      "cumple": true,
+      "resultado": "Rechazo indicando el campo fecha_prevista.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "DATOS_INVALIDOS",
+          "mensaje": "La 'fecha_prevista' no puede ser anterior a la 'fecha_prestamo'",
+          "detalles": [
+            {
+              "campo": "fecha_prevista",
+              "mensaje": "La 'fecha_prevista' no puede ser anterior a la 'fecha_prestamo'"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "n": 21,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 6c · Préstamo con datos incompletos",
+      "caso": "Datos incompletos",
+      "metodo": "POST",
+      "ruta": "/api/prestamos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "equipo_id": 1
+      },
+      "esperado": 400,
+      "obtenido": 400,
+      "cumple": true,
+      "resultado": "Rechazo indicando prestatario y fecha_prevista.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "DATOS_INVALIDOS",
+          "mensaje": "Hay 2 datos inválidos o incompletos",
+          "detalles": [
+            {
+              "campo": "prestatario",
+              "mensaje": "El campo 'prestatario' es obligatorio"
+            },
+            {
+              "campo": "fecha_prevista",
+              "mensaje": "El campo 'fecha_prevista' es obligatorio"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "n": 22,
+      "carpeta": "4. Préstamos",
+      "nombre": "Eliminar equipo con historial (prestado)",
+      "caso": null,
+      "metodo": "DELETE",
+      "ruta": "/api/equipos/1",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 409,
+      "obtenido": 409,
+      "cumple": true,
+      "resultado": "No se permite eliminar equipos con historial de préstamos.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "EQUIPO_CON_HISTORIAL",
+          "mensaje": "No se puede eliminar el equipo: tiene 1 préstamo(s) en su historial"
+        }
+      }
+    },
+    {
+      "n": 23,
+      "carpeta": "4. Préstamos",
+      "nombre": "Consultar préstamos activos",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/prestamos?activos=true",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Solo préstamos sin fecha de devolución.",
+      "respuesta": {
+        "ok": true,
+        "data": [
+          {
+            "estado": "activo",
+            "id": 1,
+            "equipo_id": 1,
+            "usuario_id": 1,
+            "prestatario": "Ana Torres Quispe",
+            "fecha_prestamo": "2026-11-02",
+            "fecha_prevista": "2026-11-07",
+            "fecha_devolucion": null,
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z",
+            "equipo": {
+              "id": 1,
+              "codigo": "EQ-384636",
+              "nombre": "Osciloscopio digital 200 MHz"
+            },
+            "registrado_por": {
+              "id": 1,
+              "nombre": "Alumno Demo"
+            }
+          }
+        ],
+        "meta": {
+          "total": 1,
+          "page": 1,
+          "limit": 20,
+          "paginas": 1
+        }
+      }
+    },
+    {
+      "n": 24,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 5a · Registrar devolución",
+      "caso": "Devolución",
+      "metodo": "PUT",
+      "ruta": "/api/prestamos/1/devolucion",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {},
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Se registra la fecha de devolución; estado \"devuelto\".",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "estado": "devuelto",
+          "id": 1,
+          "equipo_id": 1,
+          "usuario_id": 1,
+          "prestatario": "Ana Torres Quispe",
+          "fecha_prestamo": "2026-11-02",
+          "fecha_prevista": "2026-11-07",
+          "fecha_devolucion": "2026-11-02",
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.000Z",
+          "equipo": {
+            "id": 1,
+            "codigo": "EQ-384636",
+            "nombre": "Osciloscopio digital 200 MHz"
+          },
+          "registrado_por": {
+            "id": 1,
+            "nombre": "Alumno Demo"
+          }
+        }
+      }
+    },
+    {
+      "n": 25,
+      "carpeta": "4. Préstamos",
+      "nombre": "Devolver un préstamo ya devuelto",
+      "caso": null,
+      "metodo": "PUT",
+      "ruta": "/api/prestamos/1/devolucion",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {},
+      "esperado": 409,
+      "obtenido": 409,
+      "cumple": true,
+      "resultado": "Rechazo: el préstamo ya fue devuelto.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "PRESTAMO_YA_DEVUELTO",
+          "mensaje": "El préstamo ya fue devuelto el 2026-11-02"
+        }
+      }
+    },
+    {
+      "n": 26,
+      "carpeta": "4. Préstamos",
+      "nombre": "Devolución de un préstamo inexistente",
+      "caso": null,
+      "metodo": "PUT",
+      "ruta": "/api/prestamos/999999/devolucion",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {},
+      "esperado": 404,
+      "obtenido": 404,
+      "cumple": true,
+      "resultado": "Respuesta 404.",
+      "respuesta": {
+        "ok": false,
+        "error": {
+          "codigo": "PRESTAMO_NO_ENCONTRADO",
+          "mensaje": "No existe un préstamo con id 999999"
+        }
+      }
+    },
+    {
+      "n": 27,
+      "carpeta": "4. Préstamos",
+      "nombre": "Caso 5b · Nuevo préstamo tras la devolución",
+      "caso": "Nuevo préstamo después de la devolución",
+      "metodo": "POST",
+      "ruta": "/api/prestamos",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "cuerpo": {
+        "equipo_id": 1,
+        "prestatario": "Luis Ramos Paredes",
+        "fecha_prevista": "2026-11-07"
+      },
+      "esperado": 201,
+      "obtenido": 201,
+      "cumple": true,
+      "resultado": "El equipo fue habilitado y admite un nuevo préstamo.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "estado": "activo",
+          "id": 2,
+          "equipo_id": 1,
+          "usuario_id": 1,
+          "prestatario": "Luis Ramos Paredes",
+          "fecha_prestamo": "2026-11-02",
+          "fecha_prevista": "2026-11-07",
+          "fecha_devolucion": null,
+          "createdAt": "2026-11-02T23:33:04.000Z",
+          "updatedAt": "2026-11-02T23:33:04.000Z",
+          "equipo": {
+            "id": 1,
+            "codigo": "EQ-384636",
+            "nombre": "Osciloscopio digital 200 MHz"
+          },
+          "registrado_por": {
+            "id": 1,
+            "nombre": "Alumno Demo"
+          }
+        }
+      }
+    },
+    {
+      "n": 28,
+      "carpeta": "4. Préstamos",
+      "nombre": "Historial del equipo",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/equipos/1/historial",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Los dos préstamos del equipo, del más reciente al más antiguo.",
+      "respuesta": {
+        "ok": true,
+        "data": {
+          "equipo": {
+            "id": 1,
+            "codigo": "EQ-384636",
+            "nombre": "Osciloscopio digital 200 MHz",
+            "categoria": "Electrónica",
+            "condicion_uso": "bueno",
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z"
+          },
+          "prestamos": [
+            {
+              "estado": "activo",
+              "id": 2,
+              "equipo_id": 1,
+              "usuario_id": 1,
+              "prestatario": "Luis Ramos Paredes",
+              "fecha_prestamo": "2026-11-02",
+              "fecha_prevista": "2026-11-07",
+              "fecha_devolucion": null,
+              "createdAt": "2026-11-02T23:33:04.000Z",
+              "updatedAt": "2026-11-02T23:33:04.000Z",
+              "equipo": {
+                "id": 1,
+                "codigo": "EQ-384636",
+                "nombre": "Osciloscopio digital 200 MHz"
+              },
+              "registrado_por": {
+                "id": 1,
+                "nombre": "Alumno Demo"
+              }
+            },
+            {
+              "estado": "devuelto",
+              "id": 1,
+              "equipo_id": 1,
+              "usuario_id": 1,
+              "prestatario": "Ana Torres Quispe",
+              "fecha_prestamo": "2026-11-02",
+              "fecha_prevista": "2026-11-07",
+              "fecha_devolucion": "2026-11-02",
+              "createdAt": "2026-11-02T23:33:04.000Z",
+              "updatedAt": "2026-11-02T23:33:04.000Z",
+              "equipo": {
+                "id": 1,
+                "codigo": "EQ-384636",
+                "nombre": "Osciloscopio digital 200 MHz"
+              },
+              "registrado_por": {
+                "id": 1,
+                "nombre": "Alumno Demo"
+              }
+            }
+          ]
+        },
+        "meta": {
+          "total": 2,
+          "page": 1,
+          "limit": 20,
+          "paginas": 1
+        }
+      }
+    },
+    {
+      "n": 29,
+      "carpeta": "4. Préstamos",
+      "nombre": "Préstamos filtrados por equipo",
+      "caso": null,
+      "metodo": "GET",
+      "ruta": "/api/prestamos?equipo_id=1",
+      "requiereToken": true,
+      "tokenInvalido": false,
+      "esperado": 200,
+      "obtenido": 200,
+      "cumple": true,
+      "resultado": "Activos y devueltos del equipo indicado.",
+      "respuesta": {
+        "ok": true,
+        "data": [
+          {
+            "estado": "activo",
+            "id": 2,
+            "equipo_id": 1,
+            "usuario_id": 1,
+            "prestatario": "Luis Ramos Paredes",
+            "fecha_prestamo": "2026-11-02",
+            "fecha_prevista": "2026-11-07",
+            "fecha_devolucion": null,
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z",
+            "equipo": {
+              "id": 1,
+              "codigo": "EQ-384636",
+              "nombre": "Osciloscopio digital 200 MHz"
+            },
+            "registrado_por": {
+              "id": 1,
+              "nombre": "Alumno Demo"
+            }
+          },
+          {
+            "estado": "devuelto",
+            "id": 1,
+            "equipo_id": 1,
+            "usuario_id": 1,
+            "prestatario": "Ana Torres Quispe",
+            "fecha_prestamo": "2026-11-02",
+            "fecha_prevista": "2026-11-07",
+            "fecha_devolucion": "2026-11-02",
+            "createdAt": "2026-11-02T23:33:04.000Z",
+            "updatedAt": "2026-11-02T23:33:04.000Z",
+            "equipo": {
+              "id": 1,
+              "codigo": "EQ-384636",
+              "nombre": "Osciloscopio digital 200 MHz"
+            },
+            "registrado_por": {
+              "id": 1,
+              "nombre": "Alumno Demo"
+            }
+          }
+        ],
+        "meta": {
+          "total": 2,
+          "page": 1,
+          "limit": 20,
+          "paginas": 1
+        }
+      }
+    }
+  ]
+}
